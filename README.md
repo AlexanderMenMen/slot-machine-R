@@ -1,48 +1,95 @@
 # Slot Machine in R 🎰
 
-This project simulates a slot machine built in R. It defines symbol probabilities, calculates winnings according to game rules, and runs multiple simulations to evaluate the expected prize payout.
+A slot machine simulation implemented in R, featuring weighted symbol probabilities, prize calculation logic, and reproducible simulations.  
+The project includes a refactored version of the original academic code for improved clarity, maintainability, and flexibility.
+
+---
 
 ## 📊 Overview
 
-Developed as part of the **Statistics** course during the 1st year of the Computer Engineering degree. The simulation includes:
+Originally developed as part of the **Statistics** course in the 1st year of the Computer Engineering degree, this simulation:
 
-- 4 slot windows and 5 symbols: 🍇, 🍒, 🔔, 🍉, 💎
-- Adjusted probability for each symbol
-- Prize assignment based on statistical return (at least 70% of total stakes)
-- Mass simulation of 1000 plays
+- Spins **4 slot windows** with **5 different symbols**: 🍇, 🍒, 🔔, 🍉, 💎
+- Assigns probabilities for each symbol (customizable)
+- Calculates prizes based on matching patterns and number of diamonds
+- Ensures a minimum 70% return-to-player ratio in the original configuration
+- Can run **thousands of rounds** to evaluate average payouts
+
+---
 
 ## 🛠️ Tech Stack
 
-- Language: **R**
-- Package: [`emo`](https://github.com/hadley/emo) for emojis
+- **R** (base)
+- [`emo`](https://github.com/hadley/emo) *(optional)* for emoji output — falls back to text labels if unavailable.
+
+---
 
 ## 🚀 How to Run
 
-1. Install dependencies:
+### 1️⃣ Install dependencies
+If you want emojis:
 ```r
 install.packages("devtools")
 devtools::install_github("hadley/emo")
 ````
 
-2. Run the script in RStudio or the R console:
+Otherwise, the script will automatically use text-based symbols.
 
-```r
-source("slot_machine.R")
+### 2️⃣ Run the script
+
+You can run with default values:
+
+```bash
+Rscript slot_machine.R
 ```
+
+Or customize:
+
+```bash
+Rscript slot_machine.R --rounds=5000 --seed=42
+```
+
+---
 
 ## 🎯 Features
 
-* Weighted random draw of symbols
-* Prize allocation using probability matrix
-* Statistical computations with `dbinom`, `ceiling`, and matrix operations
-* Analysis of payout, excess, and optimization
-* Simulation of 1000 rounds to evaluate behavior
+* **Weighted random draws** for each symbol
+* **Named constants** for figures, probabilities, and payout table
+* **Pure functions**: `spin_once()`, `compute_prize()`, and `simulate_n()`
+* **Optional reproducibility** via `--seed`
+* **Configurable number of rounds** via `--rounds`
+* **Summary statistics**: total payout, average prize, standard deviation
+* Prints the first few spins for inspection
 
-## 📁 Main File
+---
 
-* `slot_machine.R`: full implementation of slot logic and simulation
+## 📁 Files
+
+* `slot_machine.R` → Full implementation of the slot machine logic and simulation.
+* *(Optional)* `README.md` → This documentation.
+
+---
+
+## 📌 Example Output
+
+```text
+Slot Machine — R (refactor)
+Rounds: 10 | Seed: 42 | Emojis: TRUE
+[0001] 🍉 🔔 🍉 🍉 | Prize: 0
+[0002] 💎 💎 💎 💎 | Prize: 86
+[0003] 🍒 🍒 🍒 🍒 | Prize: 28
+[0004] 🍇 🍉 💎 🍇 | Prize: 0
+[0005] 💎 🍉 💎 💎 | Prize: 7
+
+--- Summary ---
+Total payout: 121
+Average per round: 12.1000
+Std. dev.: 27.1566
+```
+
+---
 
 ## 👤 Author
 
-Alexander Mendoza Mendoza ([GitHub](https://github.com/AlexanderMenMen))
-*Individual academic project.*
+**Alexander Mendoza Mendoza** ([GitHub](https://github.com/AlexanderMenMen))
+*Individual academic project, refactored for clarity and maintainability.*
