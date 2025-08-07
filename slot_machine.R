@@ -1,115 +1,97 @@
-install.packages("devtools")
-devtools::install_github("hadley/emo")
+# Slot Machine in R — refactor for clarity and reproducibility
+# Author: Alexander Mendoza Mendoza
+# Usage:
+#   Rscript slot_machine.R --rounds=1000 --seed=130
+#   Rscript slot_machine.R                      # defaults
 
-uvas<-emo::ji("grape")
-cerezas<-emo::ji("cherries")
-campana<-emo::ji("bell")
-sandia<-emo::ji('watermelon')
-diamante<-emo::ji('gem')
+# ---------- Dependencies (optional emojis) ----------
+use_emoji <- requireNamespace("emo", quietly = TRUE)
 
-figuras<-c(uvas,cerezas,campana,sandia,diamante)
-probabilidades <- c(0.35, 0.08, 0.25, 0.3, 0.02)
-sample(x = figuras, size = 1, prob = probabilidades)
-set.seed(30)
+sym <- list(
+  grape   = if (use_emoji) emo::ji("grape")      else "GRAPE",
+  cherry  = if (use_emoji) emo::ji("cherries")   else "CHERRY",
+  bell    = if (use_emoji) emo::ji("bell")       else "BELL",
+  watermelon = if (use_emoji) emo::ji("watermelon") else "WATERMELON",
+  diamond = if (use_emoji) emo::ji("gem")        else "DIAMOND"
+)
 
-ventana1 <- sample(x = figuras, size = 1, prob = probabilidades)
-ventana2 <- sample(x = figuras, size = 1, prob = probabilidades)
-ventana3 <- sample(x = figuras, size = 1, prob = probabilidades)
-ventana4 <- sample(x = figuras, size = 1, prob = probabilidades)
-resultado <- c(ventana1, ventana2, ventana3, ventana4)
+# ---------- Config ----------
+# Symbols (order matters) and probabilities
+FIGURES <- c(sym$grape, sym$cherry, sym$bell, sym$watermelon, sym$diamond)
+PROBS   <- c(0.35,      0.08,       0.25,     0.30,          0.02)
 
-resultado
+# Payout schedule aligned with your original matrix:
+# max (4 diamonds) = 86; any other 4-equal = 28; 3 diamonds = 7; 2 diamonds = 2; otherwise 0
+PAYOUTS <- list(
+  four_diamonds = 86,
+  four_other    = 28,
+  three_diamond = 7,
+  two_diamond   = 2,
+  none          = 0
+)
 
-#//1.2.3
-p4diamante <- dbinom(x = 4, size = 4, prob = 0.2)
+N_WINDOWS <- 4  # four slots per spin
 
-p4nodiamante <- 4*dbinom(4, 4, 0.2)
+stopifnot(length(FIGURES) == length(PROBS))
+if (abs(sum(PROBS) - 1) > 1e-8) stop("Probabilities must sum to 1.")
 
-p3diamante <- dbinom(3, 4, 0.2)
-
-p3nodiamante <- 4*dbinom(3, 4, 0.2)
-pdist <- 1*0.75*0.5*0.25
-pnpremio <- p3nodiamante+pdist
-
-ppremios <- matrix(c(p4diamante, p4nodiamante, p3diamante, p3nodiamante,pnpremio),
-                   nrow = 5, ncol = 1, byrow = TRUE)
-
-#1.2.4
-partpremio <- 1000000*ppremios
-cantidades <- matrix(c(700000/4, 700000/4, 700000/4,700000/4,0), 
-                     nrow = 5, ncol = 1, byrow = TRUE)
-
-importe_premio_d <- cantidades/partpremio
-
-matrix(c(0.7/4, 0.7/4, 0.7/4,0.7/4, 0), 
-       nrow = 5, ncol = 1, byrow = TRUE)/ppremios
-
-importe_premio_c <- ceiling(importe_premio_d)#ceiling calculara el entero mayor siguiente
-
-#comprobamos
-t(importe_premio_c)%*%partpremio
-
-#Tal y como lo tenemos, cumple los requisitos, pero damos mas asi que podemosa ajustarlo mas. vemos exceso que hay en cada punto
-gastos <- importe_premio_c*partpremio
-exceso <- gastos - cantidades
-comparativa <- cbind(gastos, cantidades, partpremio, 
-                     exceso, importe_premio_c)
-colnames(comparativa) <- c("gastos", "cantidades", "partpremio", 
-                           "exceso", "importe_premio_c")
-rownames(comparativa) <- c("maximo", "segundo", "tercero", "cuarto", "sin premio")
-print(comparativa)
-
-#Ajustamos
-premiofinal <- matrix(c(86, 28, 7, 2, 0), 
-                      nrow = 5, ncol = 1, byrow = TRUE)
-
-#producto vectorial
-t(premiofinal)%*%partpremio
-
-#
-nuevosgastos <- premiofinal*partpremio
-nuevoexceso <- nuevosgastos - cantidades
-ncomparativa <- cbind(nuevosgastos, cantidades, partpremio,
-                      nuevoexceso, premiofinal)
-colnames(ncomparativa) <- c("ngastos", "cantidades", "partpremio",
-                            "nexceso","premiofinal")
-rownames(ncomparativa) <- c("maximo", "segundo", "tercero", "cuarto", "sin premio")
-print(ncomparativa)
-
-premio <- 0
-if (sum(resultado ==diamante) == 4) premio <- premiofinal[1, 1]
-if (sum(resultado ==uvas) == 4) premio <- premiofinal[2, 1]
-if (sum(resultado ==cerezas) == 4) premio <- premiofinal[2, 1]
-if (sum(resultado ==sandia) == 4) premio <- premiofinal[2, 1]
-if (sum(resultado ==campana) == 4) premio <- premiofinal[2, 1]
-if (sum(resultado ==diamante) == 3) premio <- premiofinal[3, 1]
-if (sum(resultado ==diamante) == 2) premio <- premiofinal[4, 1]
-
-#1.2.5
-
-set.seed(130)
-
-premioAcumulado <- 0
-
-for (i in 1:1000) 
-{
-  figuras<-c(uvas,cerezas,campana,sandia,diamante)
-  probabilidades <- c(0.35, 0.08, 0.25, 0.3, 0.02)
-  ventana1 <- sample(x = figuras, size = 1, prob = probabilidades)
-  ventana2 <- sample(x = figuras, size = 1, prob = probabilidades)
-  ventana3 <- sample(x = figuras, size = 1, prob = probabilidades)
-  ventana4 <- sample(x = figuras, size = 1, prob = probabilidades)
-  resultado <- c(ventana1, ventana2, ventana3, ventana4)
-  premiofinal <- matrix(c(86, 28, 7, 2, 0), nrow = 5, ncol = 1, byrow = TRUE)
-  premio <- 0
-  if (sum(resultado ==diamante) == 4) premio <- premiofinal[1, 1]
-  if (sum(resultado ==uvas) == 4) premio <- premiofinal[2, 1]
-  if (sum(resultado ==cerezas) == 4) premio <- premiofinal[2, 1]
-  if (sum(resultado ==sandia) == 4) premio <- premiofinal[2, 1]
-  if (sum(resultado ==campana) == 4) premio <- premiofinal[2, 1]
-  if (sum(resultado ==diamante) == 3) premio <- premiofinal[3, 1]
-  if (sum(resultado ==diamante) == 2) premio <- premiofinal[4, 1]
-  cat(" ",resultado,"\n"," Premio:",premio,"euros\n")
-  premioAcumulado <- premioAcumulado + premio
+# ---------- CLI args ----------
+get_arg <- function(name, default = NULL) {
+  # expects --name=value
+  a <- grep(paste0("^--", name, "="), commandArgs(TRUE), value = TRUE)
+  if (length(a) == 0) return(default)
+  sub(paste0("^--", name, "="), "", a[1])
 }
-print(premioAcumulado)
+ROUNDS <- as.integer(get_arg("rounds", 1000))
+SEED   <- get_arg("seed", NA)
+
+if (!is.na(SEED)) set.seed(as.integer(SEED))
+
+# ---------- Core helpers ----------
+spin_once <- function(figures = FIGURES, probs = PROBS, n = N_WINDOWS) {
+  sample(figures, size = n, replace = TRUE, prob = probs)
+}
+
+compute_prize <- function(result, figures = FIGURES, payouts = PAYOUTS) {
+  # count diamonds
+  diamond <- tail(figures, 1)  # last is diamond in our config
+  dcount <- sum(result == diamond)
+
+  # four-in-a-row (any symbol)
+  # Note: "all equal and not diamond" vs "all diamonds"
+  if (length(unique(result)) == 1) {
+    if (result[1] == diamond) return(payouts$four_diamonds)
+    else return(payouts$four_other)
+  }
+  if (dcount == 3) return(payouts$three_diamond)
+  if (dcount == 2) return(payouts$two_diamond)
+  return(payouts$none)
+}
+
+simulate_n <- function(n_rounds) {
+  prizes <- integer(n_rounds)
+  # sample once per window for speed
+  for (i in seq_len(n_rounds)) {
+    res <- spin_once()
+    prizes[i] <- compute_prize(res)
+    if (i <= 5) {
+      cat(sprintf("[%04d] %s | Prize: %d\n", i, paste(res, collapse = " "), prizes[i]))
+    }
+  }
+  list(
+    total = sum(prizes),
+    mean  = mean(prizes),
+    sd    = sd(prizes),
+    rounds = n_rounds
+  )
+}
+
+# ---------- Run ----------
+cat("Slot Machine — R (refactor)\n")
+cat(sprintf("Rounds: %d | Seed: %s | Emojis: %s\n",
+            ROUNDS, ifelse(is.na(SEED), "none", SEED), use_emoji))
+
+stats <- simulate_n(ROUNDS)
+cat("\n--- Summary ---\n")
+cat(sprintf("Total payout: %d\nAverage per round: %.4f\nStd. dev.: %.4f\n",
+            stats$total, stats$mean, stats$sd))
